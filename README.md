@@ -13,9 +13,9 @@ A console application to monitor Teatr im. Wandy Siemaszkowej (https://teatr-rze
 
 2. Configure environment variables (optional but recommended for notifications):
    ```bash
-   export RECIPIENT_EMAIL="pustelak.mateusz@gmail.com" # Multiple emails supported with ;
-   export SENDER_EMAIL="pustelak.mateusz@gmail.com"
-   export SENDER_PASSWORD="xtnp xmvq pobp uhan"
+   export RECIPIENT_EMAIL="TBD_1@gmail.com;TBD_2@gmail.com" # Multiple emails supported with ;
+   export SENDER_EMAIL="TBD@gmail.com"
+   export SENDER_PASSWORD="TBD"
    # To test without sending actual emails:
    export MOCK_EMAIL="true"
    # If you encounter SSL certificate errors (common on macOS):
