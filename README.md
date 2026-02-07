@@ -42,3 +42,31 @@ To run this script every day at 9 AM, add the following to your `crontab -e`:
 ```
 
 Note: Ensure you set the necessary environment variables in your shell or within the crontab.
+
+
+
+## GitHub Actions Setup
+
+
+
+This project includes a GitHub Action to run the check daily. To enable it:
+
+
+
+1. Push this project to a GitHub repository.
+
+2. Go to your repository **Settings** -> **Secrets and variables** -> **Actions**.
+
+3. Create the following **Repository secrets**:
+
+   - `SENDER_EMAIL`: The email address sending the alerts.
+
+   - `SENDER_PASSWORD`: Your Gmail App Password (or SMTP password).
+
+   - `RECIPIENT_EMAIL`: The email(s) to receive alerts (semicolon separated).
+
+   - `VERIFY_SSL`: `false` (optional, if you encounter SSL errors).
+
+
+
+The script will run daily at 9:00 AM UTC and automatically update `seen_plays.json` in your repository.
