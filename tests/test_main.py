@@ -19,7 +19,7 @@ def test_run_checker_new_plays_found():
         state_inst.filter_new_plays.return_value = [
             {"title": "New Play", "date": "Date", "url": "http://url"}
         ]
-        state_inst._get_key.return_value = "New Play|Date"
+        state_inst._get_keys.return_value = ["New Play|Date"]
         notifier_inst.send_notification.return_value = True
         state_inst.get_seen_plays.return_value = set()
         

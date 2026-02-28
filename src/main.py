@@ -39,10 +39,10 @@ def run_checker():
 
     # 4. Notify
     if notifier.send_notification(new_plays):
-        # 5. Update state only if notification was successful (or in mock mode)
+        # 5. Update state only if notification was successful
         seen_keys = state_manager.get_seen_plays()
         for play in new_plays:
-            seen_keys.add(state_manager._get_key(play))
+            seen_keys.update(state_manager._get_keys(play))
         state_manager.save_seen_plays(seen_keys)
         print("State updated and notification sent.")
     else:

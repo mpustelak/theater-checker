@@ -25,12 +25,50 @@ class TheaterScraper:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def get_upcoming_plays(self):
-        """Fetches the ticketing page and extracts upcoming plays."""
+        """Fetches the ticketing page and extracts upcoming plays from all available months."""
         try:
             response = self.session.get(self.BASE_URL)
             response.raise_for_status()
         except requests.RequestException as e:
             print(f"Error fetching {self.BASE_URL}: {e}")
+            return []
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find all month links
+        month_links = {self.BASE_URL}
+        for a in soup.select("a[href*='date=']"):
+            href = a['href']
+            # Only pick links that look like month navigation (not specific events)
+            if '/pl?' in href.lower() or '/pl/?' in href.lower():
+                month_links.add(urljoin(self.BASE_URL, href))
+        
+        print(f"Found {len(month_links)} month links to scrape.")
+        
+        all_plays_dict = {}
+        for link in sorted(list(month_links)):
+            print(f"Scraping month: {link}")
+            plays = self._scrape_page(link)
+            for play in plays:
+                title = play['title']
+                if title not in all_plays_dict:
+                    all_plays_dict[title] = play
+                else:
+                    # Merge dates
+                    existing_dates = set(all_plays_dict[title]["date"].split(", "))
+                    new_dates = set(play["date"].split(", "))
+                    existing_dates.update(new_dates)
+                    all_plays_dict[title]["date"] = ", ".join(sorted(list(existing_dates)))
+        
+        return list(all_plays_dict.values())
+
+    def _scrape_page(self, url):
+        """Internal method to scrape a single page for plays."""
+        try:
+            response = self.session.get(url)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Error fetching {url}: {e}")
             return []
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -57,17 +95,18 @@ class TheaterScraper:
             dates = []
             for badge in row.select(".badge-purple"):
                 # Badge contains visible date + hidden sr-only text
-                # We want just the date/time part (first 12 chars usually "DD MMM HH:MM")
                 date_text = badge.contents[0].strip() if badge.contents else ""
                 if date_text:
                     dates.append(date_text)
             
+            if not dates:
+                continue
+
             date_str = ", ".join(sorted(list(set(dates))))
             
             desc_link = row.select_one("a.badge-cart")
             details_url = urljoin(self.BASE_URL, desc_link['href']) if desc_link else self.BASE_URL
 
-            # Key by title to merge any variations, though visible-lg should handle it
             if title not in plays_dict:
                 plays_dict[title] = {
                     "title": title,
@@ -76,7 +115,6 @@ class TheaterScraper:
                     "description": description[:500] + ("..." if len(description) > 500 else "")
                 }
             else:
-                # If we found more dates for the same title, add them
                 existing_dates = set(plays_dict[title]["date"].split(", "))
                 existing_dates.update(dates)
                 plays_dict[title]["date"] = ", ".join(sorted(list(existing_dates)))
