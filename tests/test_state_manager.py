@@ -33,3 +33,29 @@ def test_filter_new_plays_new_date(state_manager):
     assert len(new_plays) == 1
     assert new_plays[0]['title'] == "Play A"
     assert new_plays[0]['date'] == "Date 2"
+
+def test_filter_new_plays_ignore_time_change(state_manager):
+    # Already seen Play A on "08 lut 18:00"
+    # The key should be normalized to "Play A|08 lut"
+    state_manager.save_seen_plays({"Play A|08 lut"})
+    
+    scraped_plays = [
+        {"title": "Play A", "date": "08 lut 19:00"}, # Different time, same date
+    ]
+    
+    new_plays = state_manager.filter_new_plays(scraped_plays)
+    
+    # Should be ignored because the date (08 lut) is the same
+    assert len(new_plays) == 0
+
+def test_filter_new_plays_keep_time_in_notification(state_manager):
+    # Nothing seen yet
+    scraped_plays = [
+        {"title": "Play B", "date": "10 mar 20:00"},
+    ]
+    
+    new_plays = state_manager.filter_new_plays(scraped_plays)
+    
+    assert len(new_plays) == 1
+    # Should still have the time in the date string for notification
+    assert new_plays[0]['date'] == "10 mar 20:00"
